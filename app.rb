@@ -54,7 +54,7 @@ post '/signup' do
       User.create(email: params[:email], password: params[:password], password_confirmation: params[:password_confirm])
       @user = User.last
       @user.name = "Your Name?"
-      @user.employer false
+      @user.employer = false
       @user.looking_for = "What Position?"
       @user.location = "Where are you at?"
       @user.prog_type = "Type of Dev?"
