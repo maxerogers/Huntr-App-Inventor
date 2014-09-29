@@ -4,14 +4,17 @@ require "sinatra/activerecord"
 require 'omniauth-twitter'
 require 'twitter'
 require 'httparty'
+#imports all Models
 Dir["./models/*.rb"].each { |file| require file }
 
 #load local files
 require './config/environments' #database configuration
 configure do
+  set :bind, '0.0.0.0'
   set :server, 'thin'
   enable :sessions
-  set :session_secret, "My session secret"
+  set :session_secret, "My session secretls
+  "
   use OmniAuth::Builder do
     #I know this bad form but I haven't deployed yet. So Shhhhhhhh
     provider :twitter, 'I6gNM9MZzC0NctgptLDYkW8SE', 't2wGiaqZdCNn0GXbCkkVkXh3jBQB9dcf9gK6D4XKemJ2kFPsN6'
@@ -20,6 +23,10 @@ end
 
 get "/" do
   "welcome"
+end
+
+post "/" do
+  "#{params.inspect}"
 end
 
 get '/search?:skills?' do
@@ -37,33 +44,71 @@ get '/search?:skills?' do
 end
 
 post '/signup' do
-  if @user = User.where(email: params[:email])
-    "Email is already Registered. Please try another one"
+  @user = User.find_by(email: params[:email])
+  if @user
+    "Email is already in use. Please try another"
   else
-    if params[:password] == params[:password_confirm]
-      @user = User.new
-      @user.password = params[:password]
-      @user.save
-      #generateToken
-      #send confirmation email
-      "Succesful Sign up"
+    if params[:password] != params[:password_confirm]
+      "Passwords don't match, please try again"
     else
-      "Passwords don't match"
+      User.create(email: params[:email], password: params[:password], password_confirmation: params[:password_confirm])
+      "Successful User Creation"
     end
   end
 end
 
 post '/login' do
-  if @user = User.where(email: params[:email])
-    if @user.password == params[:password]
-      #generateToken
-      "Successful Login"
-    else
-      "Invalid Email or Password"
-    end
+  @output = ""
+  if @user = User.find_by(email:  params[:email]).try(:authenticate, params[:password])
+    @output = "#{@user.id}"
   else
-    "Invalid Email or Password"
+    @output = "Failed to Login. Please Check your Email or Password are Correct"
   end
+  @output
+end
+
+post '/update_user' do
+  @user = User.find(params[:id])
+  @user.name = params[:name]
+  @user.prog_type = params[:prog_type]
+  @user.employer = params[:true]
+  @user.looking_for = params[:looking_for]
+  @user.location = params[:location]
+  @user.blob = params[:blob]
+  @user.save
+  "Success"
+end
+
+post '/upload_pic' do
+  puts params.inspect
+  "#{params.inspect}"
+end
+
+get '/user/?:id?' do
+  "#{User.find(params[:id]).to_json}"
+end
+
+get '/user/?:id?/threads' do
+
+end
+
+get '/random_user' do
+  @offset = rand(User.count)
+  "#{User.offset(@offset).first.to_json}"
+end
+
+get '/conversations' do
+  convos = Conversation.where("user_a_id = ? OR user_b_id = ?", params[:id], params[:id])
+  first_messages = []
+  convos.each do |c|
+    m = c.messages.where.not("user_id = ?",params[:id]).last
+    first_messages.push [User.find(m.user_id).name , m.data]
+  end
+  "#{first_messages.to_a}"
+end
+
+get '/user_skills/?:id?' do
+  "#{User.find(params[:id]).skills.to_json}"
 end
 
 get '/login/twitter' do
