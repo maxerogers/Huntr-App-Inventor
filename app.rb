@@ -52,7 +52,7 @@ post '/signup' do
       "Passwords don't match, please try again"
     else
       User.create(email: params[:email], password: params[:password], password_confirmation: params[:password_confirm])
-      "Successful User Creation"
+      "#{User.last.id}"
     end
   end
 end
