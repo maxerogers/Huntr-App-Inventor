@@ -64,7 +64,6 @@ post '/signup' do
       "#{@user.id}"
     end
   end
-  "Error?"
 end
 
 post '/login' do
