@@ -103,6 +103,29 @@ get '/random_user' do
   "#{User.offset(@offset).first.to_json}"
 end
 
+post '/update_skills' do
+  puts "TEST"
+  user = User.find(params[:id])
+  user.skills = []
+  user.save
+  str_skills = "#{params[:skills]}"
+  result = ""
+  puts "TEST TEST"
+  str_skills.split(",").each do |str|
+    temp_skill = Skill.where(name: str.capitalize).first
+    user.skills.push temp_skill unless temp_skill.nil?
+  end
+  user.save
+  i = str_skills.split(",").size
+  while i < 6 do
+    temp_skill = Skill.where(name: "N/A").first
+    user.skills.push temp_skill
+    i+=1
+  end
+  user.save
+  "#{user.skills.to_json}"
+end
+
 get '/conversations' do
   convos = Conversation.where("user_a_id = ? OR user_b_id = ?", params[:id], params[:id])
   first_messages = []
