@@ -52,7 +52,16 @@ post '/signup' do
       "Passwords don't match, please try again"
     else
       User.create(email: params[:email], password: params[:password], password_confirmation: params[:password_confirm])
-      "#{User.last.id}"
+      @user = User.last
+      @user.name = "Your Name?"
+      @user.employer false
+      @user.looking_for = "What Position?"
+      @user.location = "Where are you at?"
+      @user.prog_type = "Type of Dev?"
+      @user.blob = "Tell us about yourself"
+      @user.skills.push [Skill.where(name: "N/A"),Skill.where(name: "N/A"),Skill.where(name: "N/A"),Skill.where(name: "N/A"),Skill.where(name: "N/A"),Skill.where(name: "N/A")]
+      @user.save
+      "#{@user.id}"
     end
   end
 end
@@ -75,6 +84,7 @@ post '/update_user' do
   @user.looking_for = params[:looking_for]
   @user.location = params[:location]
   @user.blob = params[:blob]
+  puts params[:skills]
   @user.save
   "Success"
 end
@@ -86,10 +96,6 @@ end
 
 get '/user/?:id?' do
   "#{User.find(params[:id]).to_json}"
-end
-
-get '/user/?:id?/threads' do
-
 end
 
 get '/random_user' do
